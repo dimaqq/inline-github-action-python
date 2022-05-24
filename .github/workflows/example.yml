@@ -39,7 +39,7 @@ jobs:
               slug = slug.strip(".-")
               tag = slug[:128]
           elif push:
-              assert os.getenv("GITHUB_REF").starswith("refs/head/")
+              assert os.getenv("GITHUB_REF").startswith("refs/head/")
               ref = os.getenv("GITHUB_REF")[10:]
               if ref == "main":
                   tag = "latest"
