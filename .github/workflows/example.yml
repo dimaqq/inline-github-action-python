@@ -22,7 +22,7 @@ jobs:
         run: |
           env # DEBUG
           cat << EOF | python -
-          import os
+          import re, os
 
           # See GitHub Action docs for variables, or, for brevity, see samples here:
           # https://github.com/bahmutov/is-fork-pr/issues/113#issuecomment-540052744
