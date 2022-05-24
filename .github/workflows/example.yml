@@ -20,6 +20,7 @@ jobs:
         # Therefore a local action cannot be used for free.
         # Thus, the code (py/js/sh) is inlined here.
         run: |
+          env
           cat << EOF | python -
           import os
 
