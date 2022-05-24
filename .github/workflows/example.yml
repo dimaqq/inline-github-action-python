@@ -36,6 +36,10 @@ jobs:
           assert not fork, "Refusing to generate a Docker tag for a PR from a forked repo"
 
           if pull:
+              # A Docker tag name must be valid ASCII and may contain:
+              # lowercase and uppercase letters, digits, underscores, periods and dashes.
+              # A tag name may not start with a period or a dash
+              # and may contain a maximum of 128 characters.
               slug = os.getenv("GITHUB_HEAD_REF")
               slug = re.sub("[^a-zA-Z0-9._-]", "-", slug)
               slug = slug.strip(".-")
