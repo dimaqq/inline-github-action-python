@@ -20,9 +20,6 @@ jobs:
         # Therefore a local action cannot be used for free.
         # Thus, the code (py/js/sh) is inlined here.
         run: |
-          python --version
-          python3 --version
-          exit 2
           cat << EOF | python -
           import os
 
@@ -56,7 +53,7 @@ jobs:
           assert tag, "Failed to compute tag"
 
           with open(os.getenv("GITHUB_ENV"), "a") as fout:
-            print(f"tag={ tag }", file=fout)
+            print("tag", tag, sep="=", file=fout)
           EOF
       - name: Debug the above
         run: echo "computed" ${{ env.tag }}
