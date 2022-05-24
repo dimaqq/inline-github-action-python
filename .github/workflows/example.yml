@@ -1,0 +1,62 @@
+name: Example using inline Python in GitHub Actions
+
+on:
+  push:
+    branches:
+      - main
+      - "release/**"
+  pull_request:
+    branches:
+      - main
+      - "release/**"
+
+jobs:
+  example_job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Compute Docker tag
+        # The docket/build-push-action uses the github context,
+        # which means the source code is never checked out.
+        # Therefore a local action cannot be used for free.
+        # Thus, the code (py/js/sh) is inlined here.
+        run: |
+          python --version
+          python3 --version
+          exit 2
+          cat << EOF | python -
+          import os
+
+          # See GitHub Action docs for variables, or, for brevity, see samples here:
+          # https://github.com/bahmutov/is-fork-pr/issues/113#issuecomment-540052744
+          fork = os.getenv("GITHUB_BASE_NAME") and os.getenv("GITHUB_HEAD_REF") and os.getenv("GITHUB_EVENT_NAME") == "pull_request"
+          push = os.getenv("GITHUB_EVENT_NAME") == "push"
+          pull = not fork and os.getenv("GITHUB_EVENT_NAME") == "pull_request"
+          tag = None
+
+          # Should not happen, but ultimately depends on repository settings.
+          assert not fork, "Refusing to generate a Docker tag for a PR from a forked repo"
+
+          if pull:
+              slug = os.getenv("GITHUB_HEAD_REF")
+              slug = re.sub("[^a-zA-Z0-9._-]", "-", slug)
+              slug = slug.strip(".-")
+              tag = slug[:128]
+          elif push:
+              assert os.getenv("GITHUB_REF").starswith("refs/head/")
+              ref = os.getenv("GITHUB_REF")[10:]
+              if ref == "main":
+                  tag = "latest"
+              elif ref == "release/1.0":
+                  tag = "1.0.0"
+              else:
+                  raise ValueError("Unknown branch, don't know how to tag")
+          else:
+              raise ValueError("Not a push or pull. don't know how to tag")
+
+          assert tag, "Failed to compute tag"
+
+          with open(os.getenv("GITHUB_ENV"), "a") as fout:
+            print(f"tag={ tag }", file=fout)
+          EOF
+      - name: Debug the above
+        run: echo "computed" ${{ env.tag }}
