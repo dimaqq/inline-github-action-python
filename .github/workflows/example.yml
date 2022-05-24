@@ -20,7 +20,7 @@ jobs:
         # Therefore a local action cannot be used for free.
         # Thus, the code (py/js/sh) is inlined here.
         run: |
-          env
+          env # DEBUG
           cat << EOF | python -
           import os
 
@@ -30,6 +30,7 @@ jobs:
           push = os.getenv("GITHUB_EVENT_NAME") == "push"
           pull = not fork and os.getenv("GITHUB_EVENT_NAME") == "pull_request"
           tag = None
+          print(os.environ) # DEBUG
 
           # Should not happen, but ultimately depends on repository settings.
           assert not fork, "Refusing to generate a Docker tag for a PR from a forked repo"
@@ -40,8 +41,7 @@ jobs:
               slug = slug.strip(".-")
               tag = slug[:128]
           elif push:
-              assert os.getenv("GITHUB_REF").startswith("refs/head/")
-              ref = os.getenv("GITHUB_REF")[10:]
+              ref = os.getenv("GITHUB_REF_NAME")
               if ref == "main":
                   tag = "latest"
               elif ref == "release/1.0":
