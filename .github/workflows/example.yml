@@ -20,7 +20,6 @@ jobs:
         # Therefore a local action cannot be used for free.
         # Thus, the code (py/js/sh) is inlined here.
         run: |
-          env # DEBUG
           cat << EOF | python -
           import re, os
 
@@ -30,7 +29,6 @@ jobs:
           push = os.getenv("GITHUB_EVENT_NAME") == "push"
           pull = not fork and os.getenv("GITHUB_EVENT_NAME") == "pull_request"
           tag = None
-          print(os.environ) # DEBUG
 
           # Should not happen, but ultimately depends on repository settings.
           assert not fork, "Refusing to generate a Docker tag for a PR from a forked repo"
