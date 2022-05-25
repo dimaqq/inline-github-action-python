@@ -83,7 +83,7 @@ jobs:
             print("PYTHON_TAG", tag, sep="=", file=fout)
           print(f"::set-output name=tag::{ tag }")
           EOF
-      - name: Compute Docket tag using JavaScript
+      - name: Compute Docker tag using JavaScript
         id: js
         run: |
           cat << EOF | node -
