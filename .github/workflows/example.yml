@@ -74,7 +74,7 @@ jobs:
               elif event["ref"] == "refs/head/release/1.0":
                   tag = "1.0.0"
               else:
-                  raise ValueError(f"Don't know how to tag branch { event['ref']!r }")
+                  raise ValueError(f"Don't know how to tag branch { event['ref'] !r}")
 
           with open(os.getenv("GITHUB_ENV"), "a") as fout:
             print("python_tag", tag, sep="=", file=fout)
