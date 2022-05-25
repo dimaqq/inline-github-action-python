@@ -20,8 +20,13 @@ jobs:
         # Therefore a local action cannot be used for free.
         # Thus, the code (py/js/sh) is inlined here.
         run: |
+          jq --version
+          jq .pull_request.head.repo.fork "${GITHUB_EVENT_PATH}"
+          echo "foo---"
+          cat "$GITHUB_EVENT_PATH"
+          echo "foo---"
           cat << EOF | python -
-          import re, os
+          import json, re, os
 
           # See GitHub Action docs for variables, or, for brevity, see samples here:
           # https://github.com/bahmutov/is-fork-pr/issues/113#issuecomment-540052744
@@ -29,6 +34,9 @@ jobs:
           push = os.getenv("GITHUB_EVENT_NAME") == "push"
           pull = not fork and os.getenv("GITHUB_EVENT_NAME") == "pull_request"
           tag = None
+          event = json.load(open(os.getenv("GITHUB_EVENT_PATH")))
+          import pprint
+          pprint.pprint(event)
 
           # Should not happen, but ultimately depends on repository settings.
           assert not fork, "Refusing to generate a Docker tag for a PR from a forked repo"
