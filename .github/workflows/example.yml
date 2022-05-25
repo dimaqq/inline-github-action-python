@@ -20,6 +20,9 @@ jobs:
         # Therefore a local action cannot be used for free.
         # Thus, the code (py/js/sh) is inlined here.
         run: |
+          echo "foo---"
+          cat "$GITHUB_EVENT_PATH"
+          echo "foo---"
           cat << EOF | python -
           import json, re, os
 
