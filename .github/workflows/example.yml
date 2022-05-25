@@ -19,6 +19,7 @@ jobs:
       # Therefore a local action cannot be used for free.
       # Thus, the code (py/js/sh) is inlined here.
       - name: Compute Docker tag using bash
+        id: docker-tag
         run: |
           jq --version
           if jq -e '.pull_request.head.repo.fork' "${GITHUB_EVENT_PATH}"
@@ -47,6 +48,7 @@ jobs:
           test -n "${TAG}"  # abort if tag could not be computed
 
           echo "BASH_TAG=${TAG}" >> "${GITHUB_ENV}"
+          echo "::set-output name=bash-tag::${TAG}"
       - name: Compute Docker tag using Python
         run: |
           cat << EOF | python -
@@ -78,6 +80,7 @@ jobs:
 
           with open(os.getenv("GITHUB_ENV"), "a") as fout:
             print("python_tag", tag, sep="=", file=fout)
+          print(f"::set-output name=python-tag::{ tag }")
           EOF
       - name: Compute Docket tag using JavaScript
         run: |
@@ -112,6 +115,7 @@ jobs:
               throw new Error("Failed to tag")
 
             await fsp.appendFile(process.env.GITHUB_ENV, "ja_tag=" + tag + "\n");
+            console.log("::set-output name=js-output::" + tag)
           })();
           EOF
       - name: Debug the above
@@ -119,3 +123,6 @@ jobs:
           echo "Bash computed" ${{ env.BASH_TAG }}
           echo "Python computed" ${{ env.python_tag }}
           echo "JavaScript computed" ${{ env.js_tag }}
+          echo "Bash computed" ${{ steps.docker-tag.outputs.bash-tag }}
+          echo "Python computed" ${{ steps.docker-tag.outputs.python-tag }}
+          echo "JavaScript computed" ${{ steps.docker-tag.outputs.js-tag }}
