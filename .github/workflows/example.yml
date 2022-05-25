@@ -111,7 +111,7 @@ jobs:
               default:
                 throw new Error("Don't know how to tag: " + event.ref);
             }
-            if not tag:
+            if (!tag)
               throw new Error("Failed to tag")
 
             await fsp.appendFile(process.env.GITHUB_ENV, "ja_tag=" + tag + "\n");
