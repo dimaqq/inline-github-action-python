@@ -90,8 +90,7 @@ jobs:
           const fsp = require('fs').promises;
 
           (async () => {
-            event = JSON.parse(fsp.readFile(process.env.GITHUB_EVENT_PATH));
-            console.log("foobar", event, "barbaz");
+            event = JSON.parse(await fsp.readFile(process.env.GITHUB_EVENT_PATH));
             let tag, slug;
             if (event.pull_request?.head.repo.fork) {
               tag = "random-fork";
