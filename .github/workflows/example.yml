@@ -14,57 +14,118 @@ jobs:
   example_job:
     runs-on: ubuntu-latest
     steps:
-      - name: Compute Docker tag
-        # The docket/build-push-action uses the github context,
-        # which means the source code is never checked out.
-        # Therefore a local action cannot be used for free.
-        # Thus, the code (py/js/sh) is inlined here.
+      # The docket/build-push-action uses the github context,
+      # which means the source code is never checked out.
+      # Therefore a local action cannot be used for free.
+      # Thus, the code (py/js/sh) is inlined here.
+      - name: Compute Docker tag using bash
+        id: bash
         run: |
           jq --version
-          jq .pull_request.head.repo.fork "${GITHUB_EVENT_PATH}"
-          echo "foo---"
-          cat "$GITHUB_EVENT_PATH"
-          echo "foo---"
+          if jq -e '.pull_request.head.repo.fork' "${GITHUB_EVENT_PATH}"
+          then
+            TAG="random-fork"
+          elif SOURCE=$(jq -re '.pull_request.head.ref' "${GITHUB_EVENT_PATH}")
+          then
+            TAG=$(echo "${SOURCE}" | sed -e 's/[^a-zA-Z0-9._-]/-/g' -e 's/^[-.]*//' -e 's/\(.\{0,128\}\).*/\1/')
+          elif TARGET=$(jq -re '.ref' "${GITHUB_EVENT_PATH}")
+          then
+            case "${TARGET}" in
+              # Note that TARGET is refs/head/<branch-name>
+              # Watch out for special characters in bash patterns: |*?[]():class:
+              refs/head/main)
+                TAG=latest
+                ;;
+              refs/head/release/1.0)
+                TAG=1.0.0
+                ;;
+              *)
+                echo "Don't know how to tag this branch: ${TARGET}"
+                ;;
+            esac
+          fi
+
+          test -n "${TAG}"  # abort if tag could not be computed
+
+          echo "BASH_TAG=${TAG}" >> "${GITHUB_ENV}"
+          echo "::set-output name=tag::${TAG}"
+      - name: Compute Docker tag using Python
+        id: python
+        run: |
           cat << EOF | python -
           import json, re, os
-
-          # See GitHub Action docs for variables, or, for brevity, see samples here:
-          # https://github.com/bahmutov/is-fork-pr/issues/113#issuecomment-540052744
-          fork = os.getenv("GITHUB_BASE_NAME") and os.getenv("GITHUB_HEAD_REF") and os.getenv("GITHUB_EVENT_NAME") == "pull_request"
-          push = os.getenv("GITHUB_EVENT_NAME") == "push"
-          pull = not fork and os.getenv("GITHUB_EVENT_NAME") == "pull_request"
-          tag = None
           event = json.load(open(os.getenv("GITHUB_EVENT_PATH")))
-          import pprint
-          pprint.pprint(event)
+          tag = None
+          try:
+              if event["pull_request"]["head"]["repo"]["fork"]:
+                  tag = "random-fork"
+          except KeyError:
+              pass
 
-          # Should not happen, but ultimately depends on repository settings.
-          assert not fork, "Refusing to generate a Docker tag for a PR from a forked repo"
+          try:
+              if not tag:
+                  slug = event["pull_request"]["head"]["ref"]
+                  slug = re.sub("[^a-zA-Z0-9._-]", "-", slug)
+                  slug = slug.strip(".-")
+                  tag = slug[:128]
+          except KeyError:
+              pass
 
-          if pull:
-              # A Docker tag name must be valid ASCII and may contain:
-              # lowercase and uppercase letters, digits, underscores, periods and dashes.
-              # A tag name may not start with a period or a dash
-              # and may contain a maximum of 128 characters.
-              slug = os.getenv("GITHUB_HEAD_REF")
-              slug = re.sub("[^a-zA-Z0-9._-]", "-", slug)
-              slug = slug.strip(".-")
-              tag = slug[:128]
-          elif push:
-              ref = os.getenv("GITHUB_REF_NAME")
-              if ref == "main":
+          if not tag:
+              if event["ref"] == "refs/head/main":
                   tag = "latest"
-              elif ref == "release/1.0":
+              elif event["ref"] == "refs/head/release/1.0":
                   tag = "1.0.0"
               else:
-                  raise ValueError("Unknown branch, don't know how to tag")
-          else:
-              raise ValueError("Not a push or pull. don't know how to tag")
-
-          assert tag, "Failed to compute tag"
+                  raise ValueError(f"Don't know how to tag branch { event['ref'] !r}")
 
           with open(os.getenv("GITHUB_ENV"), "a") as fout:
-            print("tag", tag, sep="=", file=fout)
+            print("PYTHON_TAG", tag, sep="=", file=fout)
+          print(f"::set-output name=tag::{ tag }")
+          EOF
+      - name: Compute Docket tag using JavaScript
+        id: js
+        run: |
+          cat << EOF | node -
+          // Node16 can do most ES2020 and ES2021
+          // Watch out for tagged template literals though, as GH/yaml uses same syntax
+          const fsp = require('fs').promises;
+
+          (async () => {
+            event = JSON.parse(await fsp.readFile(process.env.GITHUB_EVENT_PATH));
+            let tag, slug;
+            if (event.pull_request?.head.repo.fork) {
+              tag = "random-fork";
+            }
+            else if (slug = event.pull_request?.head.ref) {
+              slug = slug.replaceAll(/[^a-zA-Z0-9._-]/g, "-");
+              slug = slug.replace(/^[.-]*/, "");
+              tag = slug.substring(0, 128);
+            }
+            else switch (event.ref) {
+              case "refs/head/main":
+                tag = "latest";
+                break;
+              case "refs/head/release/1.0":
+                tag = "1.0.0";
+                break;
+              default:
+                throw new Error("Don't know how to tag: " + event.ref);
+            }
+            if (!tag)
+              throw new Error("Failed to tag")
+
+            await fsp.appendFile(process.env.GITHUB_ENV, "JS_TAG=" + tag + "\n");
+            console.log("::set-output name=tag::" + tag)
+          })();
           EOF
       - name: Debug the above
-        run: echo "computed" ${{ env.tag }}
+        run: |
+          echo "New env vars"
+          echo "Bash computed" ${{ env.BASH_TAG }}
+          echo "Python computed" ${{ env.PYTHON_TAG }}
+          echo "JavaScript computed" ${{ env.JS_TAG }}
+          echo "Outputs"
+          echo "Bash computed" ${{ steps.bash.outputs.tag }}
+          echo "Python computed" ${{ steps.python.outputs.tag }}
+          echo "JavaScript computed" ${{ steps.js.outputs.tag }}
