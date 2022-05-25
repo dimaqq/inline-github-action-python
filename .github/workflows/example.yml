@@ -19,7 +19,7 @@ jobs:
       # Therefore a local action cannot be used for free.
       # Thus, the code (py/js/sh) is inlined here.
       - name: Compute Docker tag using bash
-        id: docker-tag
+        id: bash
         run: |
           jq --version
           if jq -e '.pull_request.head.repo.fork' "${GITHUB_EVENT_PATH}"
@@ -48,8 +48,9 @@ jobs:
           test -n "${TAG}"  # abort if tag could not be computed
 
           echo "BASH_TAG=${TAG}" >> "${GITHUB_ENV}"
-          echo "::set-output name=bash-tag::${TAG}"
+          echo "::set-output name=tag::${TAG}"
       - name: Compute Docker tag using Python
+        id: python
         run: |
           cat << EOF | python -
           import json, re, os
@@ -79,10 +80,11 @@ jobs:
                   raise ValueError(f"Don't know how to tag branch { event['ref'] !r}")
 
           with open(os.getenv("GITHUB_ENV"), "a") as fout:
-            print("python_tag", tag, sep="=", file=fout)
-          print(f"::set-output name=python-tag::{ tag }")
+            print("PYTHON_TAG", tag, sep="=", file=fout)
+          print(f"::set-output name=tag::{ tag }")
           EOF
       - name: Compute Docket tag using JavaScript
+        id: js
         run: |
           cat << EOF | node -
           // Node16 can do most ES2020 and ES2021
@@ -113,15 +115,17 @@ jobs:
             if (!tag)
               throw new Error("Failed to tag")
 
-            await fsp.appendFile(process.env.GITHUB_ENV, "js_tag=" + tag + "\n");
-            console.log("::set-output name=js-tag::" + tag)
+            await fsp.appendFile(process.env.GITHUB_ENV, "JS_TAG=" + tag + "\n");
+            console.log("::set-output name=tag::" + tag)
           })();
           EOF
       - name: Debug the above
         run: |
+          echo "New env vars"
           echo "Bash computed" ${{ env.BASH_TAG }}
-          echo "Python computed" ${{ env.python_tag }}
-          echo "JavaScript computed" ${{ env.js_tag }}
-          echo "Bash computed" ${{ steps.docker-tag.outputs.bash-tag }}
-          echo "Python computed" ${{ steps.docker-tag.outputs.python-tag }}
-          echo "JavaScript computed" ${{ steps.docker-tag.outputs.js-tag }}
+          echo "Python computed" ${{ env.PYTHON_TAG }}
+          echo "JavaScript computed" ${{ env.JS_TAG }}
+          echo "Outputs"
+          echo "Bash computed" ${{ steps.bash.outputs.tag }}
+          echo "Python computed" ${{ steps.python.outputs.tag }}
+          echo "JavaScript computed" ${{ steps.js.outputs.tag }}
