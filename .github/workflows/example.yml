@@ -71,7 +71,7 @@ jobs:
           if not tag:
               if event["ref"] == "refs/head/main":
                   tag = "latest"
-              elif event["ref"] == "refs/head/release/1.0"
+              elif event["ref"] == "refs/head/release/1.0":
                   tag = "1.0.0"
               else:
                   raise ValueError(f"Don't know how to tag branch { event['ref']!r }")
@@ -85,10 +85,32 @@ jobs:
           // Node16 can do most ES2020 and ES2021
           // Watch out for tagged template literals though, as GH/yaml uses same syntax
           const fsp = require('fs').promises;
+
           (async () => {
             event = JSON.parse(fsp.readFile(process.env.GITHUB_EVENT_PATH));
             console.log("foobar", event, "barbaz");
-            let tag;
+            let tag, slug;
+            if (event.pull_request?.head.repo.fork) {
+              tag = "random-fork";
+            }
+            else if (slug = event.pull_request?.head.ref) {
+              slug = slug.replaceAll(/[^a-zA-Z0-9._-]/g, "-");
+              slug = slug.replace(/^[.-]*/, "");
+              tag = slug.substring(0, 128);
+            }
+            else switch (event.ref) {
+              case "refs/head/main":
+                tag = "latest";
+                break;
+              case "refs/head/release/1.0":
+                tag = "1.0.0";
+                break;
+              default:
+                throw new Error("Don't know how to tag: " + event.ref);
+            }
+            if not tag:
+              throw new Error("Failed to tag")
+
             await fsp.appendFile(process.env.GITHUB_ENV, "ja_tag=" + tag + "\n");
           })();
           EOF
