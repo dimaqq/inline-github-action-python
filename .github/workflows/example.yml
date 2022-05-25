@@ -27,7 +27,7 @@ jobs:
             TAG="random-fork"
           elif SOURCE=$(jq -re '.pull_request.head.ref' "${GITHUB_EVENT_PATH}")
           then
-            TAG="foobar-${SOURCE}"
+            TAG=$(echo "${SOURCE}" | sed -e 's/[^a-zA-Z0-9._-]/-/g' -e 's/^[-.]*//' -e 's/\(.\{0,128\}\).*/\1/')
           elif TARGET=$(jq -re '.ref' "${GITHUB_EVENT_PATH}")
           then
             case "${TARGET}" in
@@ -113,8 +113,8 @@ jobs:
             if (!tag)
               throw new Error("Failed to tag")
 
-            await fsp.appendFile(process.env.GITHUB_ENV, "ja_tag=" + tag + "\n");
-            console.log("::set-output name=js-output::" + tag)
+            await fsp.appendFile(process.env.GITHUB_ENV, "js_tag=" + tag + "\n");
+            console.log("::set-output name=js-tag::" + tag)
           })();
           EOF
       - name: Debug the above
