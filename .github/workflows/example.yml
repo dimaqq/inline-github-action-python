@@ -20,6 +20,8 @@ jobs:
         # Therefore a local action cannot be used for free.
         # Thus, the code (py/js/sh) is inlined here.
         run: |
+          jq --version
+          jq .pull_request.head.repo.fork "${GITHUB_EVENT_PATH}"
           echo "foo---"
           cat "$GITHUB_EVENT_PATH"
           echo "foo---"
