@@ -21,6 +21,7 @@ jobs:
       # Therefore a local action cannot be used for free.
       # Thus, the code (py/js/sh) is inlined here.
       - name: Debug
+        id: dummy
         run: cat $GITHUB_EVENT_PATH
       - name: Compute Docker tag using bash
         id: bash
@@ -42,6 +43,9 @@ jobs:
                 ;;
               refs/heads/release/1.0)
                 TAG=1.0.0
+                ;;
+              refs/tags/test-*)
+                TAG="fixme-test-tag"
                 ;;
               *)
                 echo "Don't know how to tag this branch: ${TARGET}"
@@ -80,6 +84,8 @@ jobs:
                   tag = "latest"
               elif event["ref"] == "refs/heads/release/1.0":
                   tag = "1.0.0"
+              elif event["ref"].startswith("refs/tags/test-"):
+                  tag = "fixme-test-tag"
               else:
                   raise ValueError(f"Don't know how to tag branch { event['ref'] !r}")
 
@@ -106,16 +112,22 @@ jobs:
               slug = slug.replace(/^[.-]*/, "");
               tag = slug.substring(0, 128);
             }
-            else switch (event.ref) {
-              case "refs/heads/main":
-                tag = "latest";
-                break;
-              case "refs/heads/release/1.0":
-                tag = "1.0.0";
-                break;
-              default:
-                throw new Error("Don't know how to tag: " + event.ref);
+            else if (event.ref?.startsWith("refs/heads/")) {
+              switch (event.ref) {
+                case "refs/heads/main":
+                  tag = "latest";
+                  break;
+                case "refs/heads/release/1.0":
+                  tag = "1.0.0";
+                  break;
+                default:
+                  throw new Error("Don't know how to tag: " + event.ref);
+              }
             }
+            else if (event.ref?.startsWith("refs/tags/test-")) {
+              tag = "fixme-test-tag";
+            }
+
             if (!tag)
               throw new Error("Failed to tag")
 
