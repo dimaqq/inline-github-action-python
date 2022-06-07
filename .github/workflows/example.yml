@@ -5,6 +5,8 @@ on:
     branches:
       - main
       - "release/**"
+    tags:
+      - test-*
   pull_request:
     branches:
       - main
@@ -18,6 +20,8 @@ jobs:
       # which means the source code is never checked out.
       # Therefore a local action cannot be used for free.
       # Thus, the code (py/js/sh) is inlined here.
+      - name: Debug
+        run: cat $GITHUB_EVENT_PATH
       - name: Compute Docker tag using bash
         id: bash
         run: |
