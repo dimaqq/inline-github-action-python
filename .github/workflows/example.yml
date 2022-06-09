@@ -20,9 +20,9 @@ jobs:
       # which means the source code is never checked out.
       # Therefore a local action cannot be used for free.
       # Thus, the code (py/js/sh) is inlined here.
-      - name: Debug
-        id: dummy
-        run: cat $GITHUB_EVENT_PATH
+      # - name: Debug
+      #   id: dummy
+      #   run: cat $GITHUB_EVENT_PATH
       - uses: actions/checkout@v3
       - name: Local Action
         id: compute-docker-tag
