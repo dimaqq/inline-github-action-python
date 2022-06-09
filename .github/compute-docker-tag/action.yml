@@ -1,13 +1,13 @@
-name: "Hello World"
-description: "Greet someone and record the time"
+name: "Compute Docker Tag"
+description: "Compute Docker image tag for this GitHub push/pull_request/tag"
 inputs:
-  who-to-greet: # id of input
-    description: "Who to greet"
-    required: true
-    default: "World"
+  fixme-fixme-fixme:
+    description: "Fixme fixme"
+    required: false
+    default: "fixme"
 outputs:
-  time: # id of output
-    description: "The time we greeted you"
+  tag:
+    description: "The Docker image tag for this GitHub push/pull_request/tag"
 runs:
-  using: "node17"
+  using: "node16"
   main: "index.js"
