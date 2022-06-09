@@ -1,0 +1,10 @@
+name: Some dependent action build this project
+
+jobs:
+  build_smth:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        name: "xx"
+      - uses: ./.github/compute-docker-tag
+        name: "xx"
