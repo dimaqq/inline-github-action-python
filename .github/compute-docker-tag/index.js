@@ -1,1 +1,1 @@
-process.stdout.write("::set-output name=tag::FIXME");
+process.stdout.write("::set-output name=tag::FIXME\n");

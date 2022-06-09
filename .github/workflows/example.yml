@@ -149,3 +149,4 @@ jobs:
           echo "Bash computed" ${{ steps.bash.outputs.tag }}
           echo "Python computed" ${{ steps.python.outputs.tag }}
           echo "JavaScript computed" ${{ steps.js.outputs.tag }}
+          echo "JavaScript computed" ${{ steps.compute-docker-tag.outputs.tag }}
