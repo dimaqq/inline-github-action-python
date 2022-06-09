@@ -11,9 +11,11 @@ on:
       - "*"
 
 jobs:
-  call-workflow-build:
+  build:
     uses: ./.github/workflows/build-smth.yml
-  call-workflow-test:
+  test:
     uses: ./.github/workflows/test-smth.yml
-  call-workflow-publish:
+    needs: build
+  publish:
     uses: ./.github/workflows/publish-smth.yml
+    needs: test
