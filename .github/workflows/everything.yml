@@ -1,0 +1,19 @@
+name: Build, then test, then publish
+
+on:
+  push:
+    branches:
+      - "*"
+    tags:
+      - "*"
+  pull_request:
+    branches:
+      - "*"
+
+jobs:
+  call-workflow-build:
+    uses: ./.github/workflows/build-smth.yml
+  call-workflow-test:
+    uses: ./.github/workflows/test-smth.yml
+  call-workflow-publish:
+    uses: ./.github/workflows/publish-smth.yml
