@@ -23,9 +23,10 @@ jobs:
       - name: Debug
         id: dummy
         run: cat $GITHUB_EVENT_PATH
+      - uses: actions/checkout@v3
       - name: Local Action
         id: compute-docker-tag
-        uses: ./.github/compute-docker-tag
+        uses: compute-docker-tag
       - name: Compute Docker tag using bash
         id: bash
         run: |
