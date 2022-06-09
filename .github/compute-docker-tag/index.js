@@ -1,5 +1,4 @@
 // Node16 can do most ES2020 and ES2021
-// Watch out for tagged template literals though, as GH/yaml uses same syntax
 const fsp = require("fs").promises;
 
 const slug = (name) =>
