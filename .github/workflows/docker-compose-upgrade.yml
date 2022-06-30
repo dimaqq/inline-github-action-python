@@ -1,4 +1,4 @@
-name: Build, then test, then publish
+name: Upgrade docker-compose
 
 on:
   push:
@@ -12,5 +12,13 @@ jobs:
       - id: upgrade
         run: |
           set -vx +e
-          ls /
-          ls /
+          docker --version
+          # is there a plugin?
+          docker compose version
+          # is there a standalone script?
+          docker-compose --version
+          if ! docker-compose --version | grep -q 'v2[.][0-9][.][0-9]';
+          then
+            echo "do pugrade"
+          fi
+          docker-compose --version
