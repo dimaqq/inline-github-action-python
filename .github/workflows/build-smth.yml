@@ -1,0 +1,13 @@
+name: Build Something
+
+on:
+  workflow_call:
+
+jobs:
+  build_smth:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/compute-docker-tag
+        id: compute-docker-tag
+      - run: echo "Built" ${{ steps.compute-docker-tag.outputs.tag }}

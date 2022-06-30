@@ -20,9 +20,13 @@ jobs:
       # which means the source code is never checked out.
       # Therefore a local action cannot be used for free.
       # Thus, the code (py/js/sh) is inlined here.
-      - name: Debug
-        id: dummy
-        run: cat $GITHUB_EVENT_PATH
+      # - name: Debug
+      #   id: dummy
+      #   run: cat $GITHUB_EVENT_PATH
+      - uses: actions/checkout@v3
+      - name: Local Action
+        id: compute-docker-tag
+        uses: ./.github/compute-docker-tag
       - name: Compute Docker tag using bash
         id: bash
         run: |
@@ -145,3 +149,4 @@ jobs:
           echo "Bash computed" ${{ steps.bash.outputs.tag }}
           echo "Python computed" ${{ steps.python.outputs.tag }}
           echo "JavaScript computed" ${{ steps.js.outputs.tag }}
+          echo "JavaScript computed" ${{ steps.compute-docker-tag.outputs.tag }}

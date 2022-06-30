@@ -1,0 +1,13 @@
+name: Test Something
+
+on:
+  workflow_call:
+
+jobs:
+  test_smth:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/compute-docker-tag
+        id: compute-docker-tag
+      - run: echo "Tested" ${{ steps.compute-docker-tag.outputs.tag }}

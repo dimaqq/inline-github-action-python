@@ -1,0 +1,13 @@
+name: Publish Something
+
+on:
+  workflow_call:
+
+jobs:
+  publish_smth:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/compute-docker-tag
+        id: compute-docker-tag
+      - run: echo "Published" ${{ steps.compute-docker-tag.outputs.tag }}
