@@ -1,0 +1,16 @@
+name: Build, then test, then publish
+
+on:
+  push:
+    branches:
+      - "*"
+
+jobs:
+  dc-upgrade:
+    runs-on: ubuntu-latest
+    steps:
+      - id: upgrade
+        run: |
+          set -vx +e
+          ls /
+          ls /
